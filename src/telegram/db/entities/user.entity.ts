@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { SendMessage } from './send-message.entity';
 
 @Entity()
 export class Users {
@@ -10,6 +11,9 @@ export class Users {
 
   @Column()
   name: string;
+
+  @OneToOne(() => SendMessage, (send) => send.userId)
+  sendId: SendMessage;
 
   @Column()
   username: string;
