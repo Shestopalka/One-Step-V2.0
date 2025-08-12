@@ -5,26 +5,29 @@ import { getUsersNearbyCommand } from '../commands/get-nearby-users.command';
 import { SessionManager } from '../sessions/sessionManager.session';
 import { ISessionSchema } from 'src/interfaces/sessionSchema.interface';
 import { HandlerSteps } from 'src/enums/handler-steps.enum';
+import { IHandler } from 'src/interfaces/handler.interface';
 
 @Injectable()
-export class GetNearbyUsersHandler {
+export class GetNearbyUsersHandler implements IHandler {
   constructor(
     private readonly getUsersNearbyCommand: getUsersNearbyCommand,
     private readonly sessionManager: SessionManager<ISessionSchema>,
   ) {}
 
-  nearbyHandler(ctx: Context) {
+  canHandle(ctx: Context) {
     return this.getUsersNearbyCommand.handler(ctx);
   }
 
-  handler(ctx: Context, userId: number) {
+  async handle(ctx: Context, userId: number) {
     const session = this.sessionManager.get(userId);
-    if (!session) return;
+    if (!session) return false;
 
     if (MessageValidator.isTextMessage(ctx)) {
       if (session.handlerStatus?.step === HandlerSteps.GET_NEARBY_USERS) {
-        return this.nearbyHandler(ctx);
+        await this.canHandle(ctx);
+        return;
       }
     }
+    return false;
   }
 }

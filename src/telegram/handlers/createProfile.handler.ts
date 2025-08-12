@@ -7,36 +7,39 @@ import { MessageValidator } from 'src/validations/message.validator';
 import { HandlerSteps } from 'src/enums/handler-steps.enum';
 import { SessionManager } from '../sessions/sessionManager.session';
 import { ISessionSchema } from 'src/interfaces/sessionSchema.interface';
+import { IHandler } from 'src/interfaces/handler.interface';
 
 @Injectable()
-export class CreateProfileHandler {
+export class CreateProfileHandler implements IHandler {
   constructor(
     private readonly createProfileCommand: CreateProfileCommand,
     private readonly sessionManager: SessionManager<ISessionSchema>,
   ) {}
 
-  async createHandler(ctx: Context) {
+  async canHandle(ctx: Context) {
     await this.createProfileCommand.handle(ctx);
   }
 
-  async handler(ctx: Context, userId: number): Promise<false | void> {
-    if (ProfileValidator.isGeoLocation(ctx)) {
-      const session = this.sessionManager.get(userId);
-      if (!session?.handlerStatus) return;
+  async handle(ctx: Context, userId: number): Promise<void | false> {
+    console.log('PAPA');
 
+    const session = this.sessionManager.get(userId);
+
+    if (!session?.handlerStatus) return false;
+    console.log('THIS SESSION HANGLER:', session.handlerStatus.step);
+
+    if (ProfileValidator.isGeoLocation(ctx)) {
       if (session.handlerStatus.step == HandlerSteps.CREATE_PROFILE) {
-        return await this.createHandler(ctx);
+        return await this.canHandle(ctx);
       }
     } else if (ProfileValidator.isPhoto(ctx)) {
-      const session = this.sessionManager.get(userId);
-      if (!session?.handlerStatus) return;
-
       if (session.handlerStatus.step === HandlerSteps.CREATE_PROFILE) {
-        return await this.createHandler(ctx);
+        return await this.canHandle(ctx);
       }
     } else if (MessageValidator.isTextMessage(ctx)) {
-      await this.createHandler(ctx);
+      await this.canHandle(ctx);
     }
+
     return false;
   }
 }

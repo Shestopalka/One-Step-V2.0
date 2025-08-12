@@ -6,38 +6,38 @@ import { MessageValidator } from 'src/validations/message.validator';
 import { HandlerSteps } from 'src/enums/handler-steps.enum';
 import { SessionManager } from '../sessions/sessionManager.session';
 import { ISessionSchema } from 'src/interfaces/sessionSchema.interface';
+import { IHandler } from 'src/interfaces/handler.interface';
 
 @Injectable()
-export class editProfileHandler {
+export class editProfileHandler implements IHandler {
   constructor(
     private readonly editProfileCommand: EditProfileCommand,
     private readonly sessionManager: SessionManager<ISessionSchema>,
   ) {}
 
-  async eidtHandler(ctx: Context) {
+  async canHandle(ctx: Context) {
     await this.editProfileCommand.handle(ctx);
   }
 
-  async handler(ctx: Context, userId: number) {
-    if (ProfileValidator.isGeoLocation(ctx)) {
-      const session = this.sessionManager.get(userId);
-      if (!session?.handlerStatus) return;
+  async handle(ctx: Context, userId: number) {
+    const session = this.sessionManager.get(userId);
+    if (!session?.handlerStatus) return false;
 
+    if (ProfileValidator.isGeoLocation(ctx)) {
       if (session.handlerStatus.step === HandlerSteps.EDIT_PROFILE) {
-        return await this.eidtHandler(ctx);
+        return await this.canHandle(ctx);
       }
     } else if (ProfileValidator.isPhoto(ctx)) {
-      const session = this.sessionManager.get(userId);
-      if (!session?.handlerStatus) return;
       if (session.handlerStatus.step === HandlerSteps.EDIT_PROFILE) {
-        return await this.eidtHandler(ctx);
+        return await this.canHandle(ctx);
       }
     } else if (MessageValidator.isTextMessage(ctx)) {
-      const session = await this.sessionManager.get(userId);
-
-      if (!session?.handlerStatus) return;
-
-      await this.eidtHandler(ctx);
+      if (session?.handlerStatus.step === HandlerSteps.EDIT_PROFILE) {
+        await this.canHandle(ctx);
+      }
     }
+    console.log('ABEMA');
+
+    return false;
   }
 }
