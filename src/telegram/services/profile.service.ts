@@ -3,8 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Profile, ProfileDocument } from '../db/mongo/profile.schema';
 import { ISessionData } from 'src/interfaces/session-data.interface';
-import { Context } from 'telegraf';
-import { profileKeyboard } from '../keyboards/profile/profile.keyboard';
+import { createGeoPoint } from 'src/utils/location.util';
+import { Location } from 'telegraf/typings/core/types/typegram';
 
 @Injectable()
 export class ProfileService {
@@ -49,5 +49,10 @@ export class ProfileService {
       console.error(err);
       throw err;
     }
+  }
+  async updateLocationUser(userId: number, location: Location) {
+    const { latitude, longitude } = location;
+    const newLocation = createGeoPoint(longitude, latitude);
+    await this.updateProfileUser(userId, 'location', newLocation);
   }
 }
