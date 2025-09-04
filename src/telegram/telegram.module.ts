@@ -11,6 +11,8 @@ import { PresentersModule } from './modules/presenters.module';
 import { SubsidiaryHandlerModule } from './commands/editProfileCase/edit-profile-handlers.module';
 import { HandlersModule } from './modules/handlers.module';
 import { CommandsModule } from './commands/commands.module';
+import { ForwardersModule } from './modules/forwarders.module';
+import { SendMessageModule } from './modules/send-message.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -18,7 +20,7 @@ import { CommandsModule } from './commands/commands.module';
       'mongodb://admin:adminpassword@localhost:27017/telegramBotDB?authSource=admin',
     ),
     TelegrafModule.forRoot({
-      token: '8037029565:AAE13xSBP2tUhTnUuZ2A7diFL9ZVO6qHUIA',
+      token: String(process.env.BOT_TOKEN),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -41,6 +43,8 @@ import { CommandsModule } from './commands/commands.module';
     SubsidiaryHandlerModule,
     HandlersModule,
     CommandsModule,
+    ForwardersModule,
+    SendMessageModule,
   ],
   providers: [MainHandler],
 })
